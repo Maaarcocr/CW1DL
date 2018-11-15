@@ -45,19 +45,48 @@ for n=1:N
         c[n]=1
     end
 end
-# plot a 1D slice of the loss functions :
-vec0=10*randn(D) # a random point
-vec1=10*randn(D) # a random direction
-vec2=10*randn(D)
-I=100
-Loss1=zeros(I,I); Loss2=zeros(I,I)
 
-for i=1:I
-    lambda_i=i/I
-    for j=1:I
-        lambda_j=j/I
-        Loss1[i,j] = SquareLoss(c,NNpred(vec0+lambda_i*vec1+lambda_j*vec2,x))
-        Loss2[i,j] = LikLoss(c,vec0+lambda_i*vec1+lambda_j*vec2,x)
+# The values of the three coefficients are selected at random
+    vec0=10*randn(D)
+    vec1=10*randn(D)
+    vec2=10*randn(D)
+    
+    # The number of steps in the [0, 1] interval to take
+    I=100
+    
+    # The values for the two loss functions on 1 dimension
+    Loss11=zeros(I);
+    Loss12=zeros(I)
+    
+    # The values for the two loss functions on 2 dimensions
+    Loss21=zeros(I,I);
+    Loss22=zeros(I,I)
+    
+    for i=1:I
+        # Compute the 1-dimensional error value for both losses
+        lambda_i=i/I
+        Loss11[i] = SquareLoss(c,NNpred(vec0+lambda_i*vec1,x))
+        Loss12[i] = LikLoss(c,vec0+lambda_i*vec1,x)
+        for j=1:I
+            # Compute the 2-dimensional error value for both losses
+            lambda_j=j/I
+            Loss21[i,j] = SquareLoss(c,NNpred(vec0+lambda_i*vec1+lambda_j*vec2,x))
+            Loss22[i,j] = LikLoss(c,vec0+lambda_i*vec1+lambda_j*vec2,x)
+        end
     end
-end
-plot(Loss1); title("Square Loss"); figure(); plot(Loss2); title("Lik Loss")
+
+figure();
+plot(Loss11);
+title("Square Loss (1D)");
+
+figure();
+plot(Loss12);
+title("Lik Loss (1D)")
+
+figure();
+plot(Loss21);
+title("Square Loss (2D)")
+
+figure();
+plot(Loss22);
+title("Lik Loss (2D)")
