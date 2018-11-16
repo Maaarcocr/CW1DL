@@ -738,6 +738,71 @@ The required derivatives are then computed using the schedule and messages.
     \end{split}
 \end{equation}
 
+\subsection*{Exercise 3.6}
+This question requires to determine whether the error function is convex with respect to $W^2$ and $b^2$ for both the LikLoss and SquareLoss. As usual, convexity is determined by whether the second derivative is always positive. For convenience, throughout this exercise, $\sigma$ is used to represent $f^{(6)}_{na} = \sigma \left ( f^{(5)}_{na} \right )$ and $L$ to represent $L \left(x^n_a, f^{(6)}_{na}\right)$; the single apex $'$ and double apex $''$ represent the first and second derivative of the function they follow with respect to either of the two variables of interest. The loss functions and their derivatives with respect to the second parameter $y$ (which will be the one of interest in the calculations) are
+\begin{equation}
+    L_{lik}(x, y) = - x \log ( y ) - (1-x)\log(1-y)
+\end{equation}
+\begin{equation}
+    L'_{lik}(x, y) = \frac{y-x}{y(1-y)}
+\end{equation}
+\begin{equation}
+    L''_{lik}(x, y) = \frac{y^2+x-2xy}{y^2(1-y)^2}
+\end{equation}
+\begin{equation}
+    L_{sq}(x, y) = \frac{1}{2} (x -  y)^2
+\end{equation}
+\begin{equation}
+    L'_{sq}(x, y) = y - x
+\end{equation}
+\begin{equation}
+    L''_{sq}(x, y) = 1
+\end{equation}
+With regard to $b^{(2)}$, the first and second derivatives are:
+\begin{equation}
+    \frac{\partial E}{\partial b^{(2)}_{a}} = \frac{1}{N} \sum_n \sigma'\left(f^{(5)}_{na}\right) L'\left(x^n_a, f^{(6)}_{na}\right) = \frac{1}{N} \sum_n \sigma' L'
+\end{equation}
+\begin{equation}
+    \begin{split}
+        \frac{\partial^2 E}{\partial {b^{(2)}_{a}}^2} & =
+        \frac{1}{N} \sum_n \sigma'L''\sigma' + \sigma''L' \\
+        & = \frac{1}{N} \sum_n \sigma^2 (1-\sigma)^2 L'' + \sigma (1-\sigma)(1-2\sigma) L' \\
+        & = \frac{1}{N} \sum_n \sigma (1-\sigma)[\sigma(1-\sigma)L'' + (1-2\sigma)L']
+    \end{split}
+\end{equation}
+It is known that $\sigma (1-\sigma)$ is never negative, hence the factor to assess for positivity is $\sigma(1-\sigma)L'' + (1-2\sigma)L'$. For the LikLoss:
+\begin{equation}
+    \sigma(1-\sigma)\frac{\sigma^2 + x -2\sigma x}{\sigma^2 (1-\sigma)^2} + (1-2\sigma)\frac{\sigma -x}{\sigma(1-\sigma)} = \frac{x + \sigma^2 -2\sigma x + \sigma -x -2\sigma^2 +2\sigma x}{\sigma(1-\sigma)} = 1
+\end{equation}
+This proves that the second derivative of the error function with respect to $b^{(2)}$ using the LikLoss is always positive, proving convexity. Similarly, for the SquareLoss:
+\begin{equation}
+        \sigma(1-\sigma) +(1-2\sigma)(\sigma-x) = \sigma - \sigma^2 + \sigma - x - 2\sigma^2 + 2\sigma x = -3\sigma^2 + \sigma(2+2x) - x
+\end{equation}
+For the error function to be convex, this factor has to be positive for each value of $x$, but that is not the case as the function can be negative (e.g. for $\sigma=0.75, x = 0$ the factor is equal to $-0.1875$). Due to this inconsistency in the sign of the factor, it is determined that the error function is not convex with respect to $b^{(2)}$ when the SquareLoss is used.\\ \ \\
+The process is now repeated for $W^{(2)}$. The derivative of the error function with respect to $W^{(2)}_{ab}$ is:
+\begin{equation}
+    \frac{\partial E}{\partial W^{(2)}_{ab}} = \frac{1}{N} \sum_n f^{(3)}_{nb} \sigma'\left(f^{(5)}_{na}\right) L'\left(x^n_a, f^{(6)}_{na}\right)
+\end{equation}
+The factor $f^{(3)}$ does not depend on $W^{(2)}$ and can therefore be treated as a constant. The second derivative is:
+\begin{equation}
+    \begin{split}
+        \frac{\partial ^2 E}{\partial {W^{(2)}_{ab}}^2} & = \frac{1}{N} \sum_n f^{(3)}_{nb} \left [
+        \sigma'\left(f^{(5)}_{na}\right) L''\left(x^n_a, f^{(6)}_{na}\right) \sigma'\left(f^{(5)}_{na}\right) (-1) f^{(3)}_{nb} + L'\left(x^n_a, f^{(6)}_{na}\right) \sigma''\left(f^{(5)}_{na}\right) (-1) f^{(3)}_{nb}
+        \right] \\
+        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left [
+        \left(\sigma'\left(f^{(5)}_{na}\right)\right)^2 L''\left(x^n_a, f^{(6)}_{na}\right) + L'\left(x^n_a, f^{(6)}_{na}\right) \sigma''\left(f^{(5)}_{na}\right)
+        \right] \\
+        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left[
+        (\sigma ')^2 L'' + \sigma'' L' \right] \\
+        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left[
+        \sigma^2 (1-\sigma)^2 L'' + \sigma (1-\sigma)(1-2 \sigma) L' \right] \\
+        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \sigma (1-\sigma) \left[
+        \sigma (1-\sigma) L'' + \sigma (1-2 \sigma) L' \right]
+    \end{split}
+\end{equation}
+The only factor to assess is once again $\sigma (1-\sigma) L'' + \sigma (1-2 \sigma) L'$. The conclusions on its sign are similar to the ones in the first half of this exercise. The significant difference is that the second derivative has an additional $(-1)$ factor that simply flips the sign for the overall function. This means that for the LikLoss, the error function is concave with respect to $W^{(2)}$, but it is not for the SquareLoss.
+
+
 
 
 
