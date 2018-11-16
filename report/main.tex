@@ -601,7 +601,7 @@ The individual functions are defined and the related computation graph is drawn 
     f^{(1)}_{nk} = \sum_{j=1}^{784} W^{(1)}_{kj} x^n_j
 \end{equation}
 \begin{equation}
-    f^{(2)}_{nk} = b^{(1)}_k - f^{(1)}_{nk}
+    f^{(2)}_{nk} = b^{(1)}_k + f^{(1)}_{nk}
 \end{equation}
 \begin{equation}
     f^{(3)}_{nk} = \phi \left( f^{(2)}_{nk} \right )
@@ -610,7 +610,7 @@ The individual functions are defined and the related computation graph is drawn 
     f^{(4)}_{ni} = \sum_{k=1}^H W^{(2)}_{ik} f^{(3)}_{nk}
 \end{equation}
 \begin{equation}
-    f^{(5)}_{ni} = b^{(2)}_i - f^{(4)}_{ni}
+    f^{(5)}_{ni} = b^{(2)}_i + f^{(4)}_{ni}
 \end{equation}
 \begin{equation}
     f^{(6)}_{ni} = \sigma \left ( f^{(5)}_{ni} \right )
@@ -626,7 +626,7 @@ The partial derivatives are calculated.
     \frac{\partial f^{(1)}_{ni}}{\partial W^{(1)}_{ab}} = \delta_{ia} x_b
 \end{equation}
 \begin{equation}
-    \frac{\partial f^{(2)}_{ni}}{\partial f^{(1)}_{mj}} = - \delta_{ij} \delta_{mn}
+    \frac{\partial f^{(2)}_{ni}}{\partial f^{(1)}_{mj}} = \delta_{ij} \delta_{mn}
 \end{equation}
 \begin{equation}
     \frac{\partial f^{(2)}_{ni}}{\partial b^{(1)}_{a}} = \delta_{ia}
@@ -641,7 +641,7 @@ The partial derivatives are calculated.
     \frac{\partial f^{(4)}_{ni}}{\partial W^{(2)}_{ab}} = \delta_{ia} f^{(3)}_{nb}
 \end{equation}
 \begin{equation}
-    \frac{\partial f^{(5)}_{ni}}{\partial f^{(4)}_{mj}} = - \delta_{ij} \delta_{mn}
+    \frac{\partial f^{(5)}_{ni}}{\partial f^{(4)}_{mj}} = \delta_{ij} \delta_{mn}
 \end{equation}
 \begin{equation}
     \frac{\partial f^{(5)}_{ni}}{\partial b^{(2)}_{a}} = \delta_{ia}
@@ -672,7 +672,7 @@ The reverse schedule is determined along with the messages.
     t^{b^{(2)}}_{a} = \sum_m \sum_j \frac{\partial f^{(5)}_{mj}}{\partial b^{(2)}_a} t^{(5)}_{mj} = \sum_m \sum_j \delta_{ja} t^{(5)}_{mj} = \sum_m t^{(5)}_{ma}
 \end{equation}
 \begin{equation}
-    t^{(4)}_{ni} = \sum_m \sum_j \frac{\partial f^{(5)}_{mj}}{\partial f^{(4)}_ni} t^{(5)}_{mj} = \sum_m \sum_j - \delta_{ij} \delta_{mn} t^{(5)}_{mj} = t^{(5)}_{ni}
+    t^{(4)}_{ni} = \sum_m \sum_j \frac{\partial f^{(5)}_{mj}}{\partial f^{(4)}_ni} t^{(5)}_{mj} = \sum_m \sum_j \delta_{ij} \delta_{mn} t^{(5)}_{mj} = t^{(5)}_{ni}
 \end{equation}
 \begin{equation}
     t^{W^{(2)}}_{ab} = \sum_n \sum_i \frac{\partial f^{(4)}_{ni}}{\partial W^{(2)}_{ab}} t^{(4)}_{ni} = \sum_n \sum_i \delta_{ia} f^{(3)}_{nb} t^{(4)}_{ni} = \sum_n f^{(3)}_{nb} t^{(4)}_{na}
@@ -684,7 +684,7 @@ The reverse schedule is determined along with the messages.
     t^{(2)}_{ni} = \sum_m \sum_j \frac{\partial f^{(3)}_{mj}}{\partial f^{(2)}_ni} t^{(3)}_{mj} = \sum_m \sum_j \phi ' \left (f^{(2)}_{mj}\right) \delta_{ij} \delta_{mn} t^{(3)}_{mj} = \phi ' \left (f^{(2)}_{ni}\right) t^{(3)}_{ni}
 \end{equation}
 \begin{equation}
-    t^{(1)}_{ni} = \sum_m \sum_j \frac{\partial f^{(2)}_{mj}}{\partial f^{(1)}_ni} t^{(2)}_{mj} = \sum_m \sum_j - \delta_{ij} \delta_{mn} t^{(2)}_{mj} = t^{(2)}_{ni}
+    t^{(1)}_{ni} = \sum_m \sum_j \frac{\partial f^{(2)}_{mj}}{\partial f^{(1)}_ni} t^{(2)}_{mj} = \sum_m \sum_j \delta_{ij} \delta_{mn} t^{(2)}_{mj} = t^{(2)}_{ni}
 \end{equation}
 \begin{equation}
     t^{b^{(1)}}_{a} = \sum_m \sum_j \frac{\partial f^{(2)}_{mj}}{\partial b^{(1)}_a} t^{(2)}_{mj} = \sum_m \sum_j \delta_{ja} t^{(2)}_{mj} = \sum_m t^{(2)}_{ma}
@@ -787,20 +787,20 @@ The factor $f^{(3)}$ does not depend on $W^{(2)}$ and can therefore be treated a
 \begin{equation}
     \begin{split}
         \frac{\partial ^2 E}{\partial {W^{(2)}_{ab}}^2} & = \frac{1}{N} \sum_n f^{(3)}_{nb} \left [
-        \sigma'\left(f^{(5)}_{na}\right) L''\left(x^n_a, f^{(6)}_{na}\right) \sigma'\left(f^{(5)}_{na}\right) (-1) f^{(3)}_{nb} + L'\left(x^n_a, f^{(6)}_{na}\right) \sigma''\left(f^{(5)}_{na}\right) (-1) f^{(3)}_{nb}
+        \sigma'\left(f^{(5)}_{na}\right) L''\left(x^n_a, f^{(6)}_{na}\right) \sigma'\left(f^{(5)}_{na}\right) f^{(3)}_{nb} + L'\left(x^n_a, f^{(6)}_{na}\right) \sigma''\left(f^{(5)}_{na}\right) f^{(3)}_{nb}
         \right] \\
-        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left [
+        & = \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left [
         \left(\sigma'\left(f^{(5)}_{na}\right)\right)^2 L''\left(x^n_a, f^{(6)}_{na}\right) + L'\left(x^n_a, f^{(6)}_{na}\right) \sigma''\left(f^{(5)}_{na}\right)
         \right] \\
-        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left[
+        & = \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left[
         (\sigma ')^2 L'' + \sigma'' L' \right] \\
-        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left[
+        & = \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \left[
         \sigma^2 (1-\sigma)^2 L'' + \sigma (1-\sigma)(1-2 \sigma) L' \right] \\
-        & = - \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \sigma (1-\sigma) \left[
+        & = \frac{1}{N} \sum_n \left(f^{(3)}_{nb}\right)^2 \sigma (1-\sigma) \left[
         \sigma (1-\sigma) L'' + \sigma (1-2 \sigma) L' \right]
     \end{split}
 \end{equation}
-The only factor to assess is once again $\sigma (1-\sigma) L'' + \sigma (1-2 \sigma) L'$. The conclusions on its sign are similar to the ones in the first half of this exercise. The significant difference is that the second derivative has an additional $(-1)$ factor that simply flips the sign for the overall function. This means that for the LikLoss, the error function is concave with respect to $W^{(2)}$, but it is not for the SquareLoss.
+The only factor to assess is once again $\sigma (1-\sigma) L'' + \sigma (1-2 \sigma) L'$. The conclusions on its sign are similar to the ones in the first half of this exercise. This means that for the LikLoss, the error function is concave with respect to $W^{(2)}$, but it is not for the SquareLoss.
 
 
 
