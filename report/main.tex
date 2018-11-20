@@ -12,6 +12,8 @@
 \DeclareMathOperator{\E}{\mathbb{E}}
 \DeclareMathOperator{\I}{\mathbb{I}}
 
+\title{Deep Learning 2018/19 - Assignment 1}
+
 \begin{document}
 
 \section*{Exercise 1}
@@ -737,6 +739,22 @@ The required derivatives are then computed using the schedule and messages.
         & = \frac{1}{N} \sum_n \sigma'\left(f^{(5)}_{na}\right) L'\left(x^n_a, f^{(6)}_{na}\right)
     \end{split}
 \end{equation}
+\subsection*{Exercise 3.4 and 3.5}
+For this question, Python was used to implement the ADAM optimiser, along with the previously defined AutoDiff schedule. Different transfer functions were tested and the relu was chosen; initial weights are picked randomly from a zero-mean unit-variance normal distribution. Learning rate was set to $0.05$, while the three ADAM parameters were tuned as suggested. The error decrease can be observed in figure \ref{fig:loss}; results of reconstruction with the autoencoder can be observed in figure \ref{fig:mnist1}.
+\begin{figure}[H]
+    \centering
+    \subfloat{{\includegraphics[width=7.5cm]{training_error_cross.png}}}
+    \qquad
+    \subfloat{{\includegraphics[width=7.5cm]{training_error_squared.png}}}
+    \caption{Training error at each ADAM optimisation round with Square Loss (left) and Cross Entropy Loss (right).}
+    \label{fig:loss}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=5.5in]{whole_plot.png}
+    \caption{The reconstructions of 100 MNIST digits; each triplet contains (from left to right) the original image, the reconstruction using squared loss and cross-entropy loss.}
+    \label{fig:mnist1}
+\end{figure}
 
 \subsection*{Exercise 3.6}
 This question requires to determine whether the error function is convex with respect to $W^2$ and $b^2$ for both the LikLoss and SquareLoss. As usual, convexity is determined by whether the second derivative is always positive. For convenience, throughout this exercise, $\sigma$ is used to represent $f^{(6)}_{na} = \sigma \left ( f^{(5)}_{na} \right )$ and $L$ to represent $L \left(x^n_a, f^{(6)}_{na}\right)$; the single apex $'$ and double apex $''$ represent the first and second derivative of the function they follow with respect to either of the two variables of interest. The loss functions and their derivatives with respect to the second parameter $y$ (which will be the one of interest in the calculations) are
@@ -802,6 +820,147 @@ The factor $f^{(3)}$ does not depend on $W^{(2)}$ and can therefore be treated a
 \end{equation}
 The only factor to assess is once again $\sigma (1-\sigma) L'' + \sigma (1-2 \sigma) L'$. The conclusions on its sign are similar to the ones in the first half of this exercise. This means that for the LikLoss, the error function is concave with respect to $W^{(2)}$, but it is not for the SquareLoss.
 
+\subsection*{Exercise 3.7 and 3.8}
+In these questions, slices of the error function with the Square Loss first and Cross-Entropy Loss then are plotted to observe whether they are convex or not. In particular, the functions plotted are
+\begin{equation}
+    F_{11}(z_1, z_2) = E(W^{(1)} + z_1 U^{(1)} + z_2 ^{(2)} U^{(2)}, b^{(1)}, W^{(2)}, b^{(2)})
+\end{equation}
+\begin{equation}
+    F_{12}(z_1, z_2) = E(W^{(1)} + z_1 U^{(1)}, b^{(1)}, W^{(2)} + z_2 U^{(2)}, b^{(2)})
+\end{equation}
+\begin{equation}
+    F_{22}(z_1, z_2) = E(W^{(1)}, b^{(1)}, W^{(2)} + z_1 U^{(1)} + z_2 ^{(2)} U^{(2)}, b^{(2)})
+\end{equation}
+for both loss functions, results are in figures \ref{fig:error_plot_1}, \ref{fig:error_plot_2} and \ref{fig:error_plot_3}. It can be observed that with cross-entropy loss, the error function appears to be convex, whereas with square loss, the error function is not convex.
+\begin{figure}[H]
+    \centering
+    \subfloat{{\includegraphics[width=7.5cm]{error_plot_1_cross.png}}}
+    \qquad
+    \subfloat{{\includegraphics[width=7.5cm]{error_plot_1_square.png}}}
+    \caption{$F_{1,1}$ for Cross-Entropy Loss (left) and Square Loss (Right)}
+    \label{fig:error_plot_1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \subfloat{{\includegraphics[width=7.5cm]{error_plot_2_cross.png}}}
+    \qquad
+    \subfloat{{\includegraphics[width=7.5cm]{error_plot_2_square.png}}}
+    \caption{$F_{1,2}$ for Cross-Entropy Loss (left) and Square Loss (Right)}
+    \label{fig:error_plot_2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \subfloat{{\includegraphics[width=7.5cm]{error_plot_3_cross.png}}}
+    \qquad
+    \subfloat{{\includegraphics[width=7.5cm]{error_plot_3_square.png}}}
+    \caption{$F_{2,2}$ for Cross-Entropy Loss (left) and Square Loss (Right)}
+    \label{fig:error_plot_3}
+\end{figure}
+
+\section*{Code}
+
+\subsection*{MNIST Autoencoder}
+The following code was used in Question 3.
+\begin{minted}{python}
+def sigmoid(x):
+    return 1 / (1 + np.exp(0 - x))
+    
+def relu(x):
+    return np.maximum(x,0)
+
+def d_relu(x):
+    return np.where(x > 0, np.full(np.shape(x), 1), np.full(np.shape(x), 0))
+
+def squared_loss(y, x):
+    return (y - x) ** 2 / 2
+
+def d_squared_loss(y, x):
+    return - (y - x)
+
+def cross_entropy_loss(x,y):
+    return -x*np.log(y) - (1-x)*np.log(1-y)
+
+def d_cross_entropy_loss(x,y):
+    return ((1-x)/(1-y)) - (x/y)
+    
+def create_weight(shape):
+    stdv = 1. / np.sqrt(shape[-1])
+    return np.random.uniform(-stdv, stdv, shape).astype(np.float32)
+
+def autodiff(xs, w1, w2, b1, b2):
+    """ Performs automatic differntiation for the required network.
+    
+    :param xs: the matrix of features
+    :param w1, w2, b1, b2: the matrices and vectors for the pairs of weights and biases
+    :return: the matrix representing the loss for each value in xs, the matrices
+    representing the total derivative of the error function for each value
+    in xs for w1, w2, b1 and b2, the matrix representing the error for each value in xs """
+    N = xs.shape[1]
+    D = xs.shape[0]
+    f1 = w_1 @ xs
+    f2 = (b_1 + f1.T).T
+    f3 = relu(f2)
+    f4 = w_2 @ f3
+    f5 = (b_2 + f4.T).T
+    f6 = sigmoid(f5)
+    f7 = loss(xs, f6)
+    f8 = np.sum(f7, axis=0)
+    f9 = np.sum(f8)
+    f10 = f9 / N
+    t10 = 1
+    t9 = 1 / N
+    t8 = np.full((N), 1 / N)
+    t7 = np.full((D, N), 1 / N)
+    t6 = d_loss(xs, f6) * t7
+    t5 = (f6*(1-f6)) * t6
+    t4 = t5
+    tb2 = np.sum(t5, axis=1)
+    t3 = w_2.T @ t4
+    tw2 = (f3 @ t4.T).T
+    t2 = d_relu(f2) * t3
+    t1 = t2
+    tb1 = np.sum(t2, axis=1)
+    tw1 = t1 @ xs.T
+    return f6, tw1, tw2, tb1, tb2, f10
+    
+def adam(weight, grad, k, m_prev, v_prev, b1=0.9, b2=0.999, l=0.0000000001, rate=0.05):
+    """ Performs ADAM optimisaton.
+    
+    :param weight: the list of weights to optimise
+    :param grad: the gradient for the error function at the weights
+    :param k: the round of optimisation
+    :param m_prev, v_prev: the ADAM parameters at the previous round
+    :return: the next round of optimisation, the ADAM parameters for the round """
+    m = b1 * m_prev + (1 - b1)*grad
+    v = b2 * v_prev + (1 - b2)*(grad ** 2)
+    m_hat = m / (1 - (b1 ** k))
+    v_hat = v / (1 - (b2 ** k))
+    weight -= (rate / (np.sqrt(v_hat) + l))*m_hat
+    return (k+1, m, v)
+    
+w1 = create_weight((30, 784))
+w2 = create_weight((784, 30))
+b1 = create_weight((30,))
+b2 = create_weight((784,))
+
+epochs = 100
+
+past_epochs = []
+past_loss_values = []
+
+previous_runnings = [[1,0,0] for i in range(4)]
+weights = [w1,w2,b1,b2]
+
+for i in range(epochs):
+    res, grad_w1, grad_w2, grad_b1, grad_b2, loss = run(features.T, w1, w2, b1, b2)
+    grads = [grad_w1, grad_w2, grad_b1, grad_b2]
+    for (j, (weight, previous_running, grad)) in enumerate(zip(weights, previous_runnings, grads)):
+        k, m, v = previous_running
+        previous_runnings[j] = adam(weight, grad, k, m, v)
+    past_epochs.append(i)
+    past_loss_values.append(loss)
+
+\end{minted}
 
 
 
